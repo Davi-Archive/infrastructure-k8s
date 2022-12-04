@@ -1,0 +1,59 @@
+
+
+---
+#database
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:latest
+        args:
+        - "--ignore-db-dir=lost+found"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3306
+          name: mysql
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+
+
+---
+#backend
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: php
+  template:
+    metadata:
+      labels:
+        app: php
+    spec:
+      containers:
+      - name: php
+        image: davi38/projeto-dio-backend:1.0
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80

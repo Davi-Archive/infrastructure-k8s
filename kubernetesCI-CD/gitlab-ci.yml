@@ -1,0 +1,30 @@
+stages:
+  - build
+  - deploy_app
+
+build_images:
+  stage: build
+  image: docker:20.10.16
+
+  services:
+   - docker:20.10.16
+
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+
+  before_script:
+    - docker login -u $REGISTRY_USER -p $REGISTRY_PASS
+
+  script:
+    - docker build -t d1av/kubernetes-projeto2-dio:1.0 app/.
+    - docker push d1av/kubernetes-projeto2-dio:1.0
+
+  deploy_gcp:
+
+    stage: deploy_gcp
+
+    before_script:
+      - chmod 400 $SSH_KEY
+
+    script:
+     - ssh -o StrictHostKeyChecking=no -i $SSH_KEY ubuntu@$SSH_SERVER "sudo docker ps -aq | xargs sudo docker stop | xargs sudo docker rm -f && sudo docker images -aq | xargs sudo docker image rm -f && sudo docker run -dti -p 3306:3306 --name mysql d1av/bancodedados:1.0 && sudo docker run -dti --name app-js -p 80:80 d1av/app:1.0"
